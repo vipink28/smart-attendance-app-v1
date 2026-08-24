@@ -1,9 +1,9 @@
 import React from "react";
 
-const CustomInput = ({ label, type, name, htmlFor, id, ...props }) => {
+const CustomInput = ({ label, type, name, id, ...props }) => {
   return (
     <div className="mb-5">
-      <label htmlFor={htmlFor} className="block mb-2">
+      <label htmlFor={id} className="block mb-2">
         {label}
       </label>
       <input
