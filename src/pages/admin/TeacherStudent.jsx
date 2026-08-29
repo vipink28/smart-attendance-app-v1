@@ -145,9 +145,16 @@ const TeacherStudent = () => {
       {isUserModal && (
         <Modal onClose={setIsUserModal}>
           {state.contentType === "view" ? (
-            <div>View</div>
+            <div>
+              <p>Name: {state.data.name}</p>
+              <p>Email: {state.data.email}</p>
+              <p>Role: {state.data.role}</p>
+              <p>Status: {state.data.isActive ? "Active" : "Inactive"}</p>
+            </div>
           ) : state.contentType === "edit" ? (
-            <div>Edit</div>
+            <div>
+              <UserForm isUpdate={true} data={state.data} />
+            </div>
           ) : (
             <div>Deactivate/Activate</div>
           )}
