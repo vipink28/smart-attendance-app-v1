@@ -1,17 +1,31 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import CustomSelect from "./CustomSelect";
 import CustomInput from "./CustomInput";
 import Button from "./Button";
 import { api } from "../../api/api";
+import { showToast } from "../../helper/toast-utility";
 
-const UserForm = ({ isUpdate, data }) => {
+const UserForm = ({ isUpdate, data, fetchUsers, onClose }) => {
+  const init = {
+    role: "",
+    name: "",
+    email: "",
+    password: "",
+  };
+
   const roleOptions = [
     { value: "admin", text: "Admin" },
     { value: "teacher", text: "Teacher" },
     { value: "student", text: "Student" },
   ];
 
-  const [formData, setFormData] = useState(null);
+  const [formData, setFormData] = useState(() => {
+    if (data) {
+      let roleProp = data.role === "student" ? "studentId" : "employeeId";
+      return { ...init, [roleProp]: "", phone: "" };
+    }
+    return { ...init };
+  });
   const handleInput = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
@@ -24,11 +38,35 @@ const UserForm = ({ isUpdate, data }) => {
     e.preventDefault();
     try {
       const res = await api.post("/admin/users", formData);
-      alert("user added successfully");
+      showToast("success", "User added successfully");
+      fetchUsers(res.data.user.role);
+      onClose(false);
     } catch (error) {
       console.log(error);
+      showToast("error", "Failed to add user ");
     }
   };
+
+  const handleUpdateUser = async (id) => {
+    try {
+      const res = await api.put(`/admin/users/${id}`, formData);
+      showToast("success", "user updated successfully");
+      fetchUsers(res.data.user.role);
+      onClose(false);
+    } catch (error) {
+      console.log(error);
+      showToast("error", "failed to udpate user");
+    }
+  };
+
+  useEffect(() => {
+    if (isUpdate && data) {
+      setFormData((prev) => ({
+        ...prev,
+        ...data,
+      }));
+    }
+  }, [isUpdate, data]);
 
   return (
     <div className="py-2">
@@ -41,6 +79,7 @@ const UserForm = ({ isUpdate, data }) => {
             label="Role"
             name="role"
             id="role"
+            value={formData.role}
             options={roleOptions}
             onChange={handleInput}
           />
@@ -50,7 +89,7 @@ const UserForm = ({ isUpdate, data }) => {
           name="name"
           id="name"
           label="Name"
-          value={data.name}
+          value={formData.name}
           onChange={handleInput}
         />
         {isUpdate ? (
@@ -60,9 +99,7 @@ const UserForm = ({ isUpdate, data }) => {
               id="phone"
               label="Phone"
               type="number"
-              min="10"
-              max="10"
-              value={data.phone}
+              value={formData.phone}
               onChange={handleInput}
             />
 
@@ -70,7 +107,11 @@ const UserForm = ({ isUpdate, data }) => {
               name={data.role === "student" ? "studentId" : "employeeId"}
               id={data.role === "student" ? "studentId" : "employeeId"}
               label={data.role === "student" ? "Student Id" : "Employee Id"}
-              value={data.role === "student" ? data.studentId : data.employeeId}
+              value={
+                data.role === "student"
+                  ? formData.studentId
+                  : formData.employeeId
+              }
               onChange={handleInput}
             />
           </>
@@ -81,6 +122,7 @@ const UserForm = ({ isUpdate, data }) => {
               id="email"
               label="Email"
               type="email"
+              value={formData.email}
               onChange={handleInput}
             />
             <CustomInput
@@ -88,12 +130,20 @@ const UserForm = ({ isUpdate, data }) => {
               id="password"
               type="password"
               label="Password"
+              value={formData.password}
               onChange={handleInput}
             />
           </>
         )}
         {isUpdate ? (
-          <Button onClick={handleAddUser}>Update User</Button>
+          <Button
+            onClick={(e) => {
+              e.preventDefault();
+              handleUpdateUser(formData._id);
+            }}
+          >
+            Update User
+          </Button>
         ) : (
           <Button onClick={handleAddUser}>Add User</Button>
         )}

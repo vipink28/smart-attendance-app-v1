@@ -5,6 +5,7 @@ import UserForm from "../../components/form/UserForm";
 import { api } from "../../api/api";
 import CustomSelect from "../../components/form/CustomSelect";
 import { CircleSlash2, Edit, Eye } from "lucide-react";
+import { showToast } from "../../helper/toast-utility";
 
 // reducer(state, action) - reducer function takes two parameters - state - which has current state, action - which is an object with two properties - {type:"", payload:""}
 const reducer = (state, action) => {
@@ -45,6 +46,26 @@ const TeacherStudent = () => {
       setFilteredUsers(res.data.users);
     } catch (error) {
       console.log(error);
+    }
+  };
+
+  const handleActiveStatus = async (id, isActive) => {
+    try {
+      const res = await api.patch(
+        `/admin/users/${id}/${isActive ? "deactivate" : "reactivate"}`,
+      );
+      showToast(
+        "success",
+        `user ${isActive ? "deactivated" : "activated"} successfully`,
+      );
+      fetchUsers(res.data.user.role);
+      setIsUserModal(false);
+    } catch (error) {
+      console.log(error);
+      showToast(
+        "error",
+        `Failed to ${isActive ? "deactivate" : "activate"} user`,
+      );
     }
   };
 
@@ -99,11 +120,14 @@ const TeacherStudent = () => {
             >
               <div className="w-1/12 p-3">{index + 1}</div>
               <div className="w-3/12 p-3">{user.name}</div>
-              <div className="w-3/12 p-3">{user.email}</div>
-              <div className="w-2/12 p-3">
+              <div className="w-2/12 p-3">{user.email}</div>
+              <div className="w-2/12 p-3">{user?.phone}</div>
+              <div className="w-1/12 p-3">{user?.studentId}</div>
+
+              <div className="w-1/12 p-3">
                 {user.isActive ? "Active" : "Inactive"}
               </div>
-              <div className="w-3/12 p-3">
+              <div className="w-2/12 p-3">
                 <button
                   className="p-2 cursor-pointer"
                   onClick={() => {
@@ -114,7 +138,8 @@ const TeacherStudent = () => {
                   <Eye />
                 </button>
                 <button
-                  className="p-2 cursor-pointer"
+                  disabled={!user.isActive}
+                  className={`p-2 cursor-pointer ${user.isActive ? "text-white" : "text-gray-600"}`}
                   onClick={() => {
                     dispatch({ type: "EDIT", payload: user });
                     setIsUserModal(true);
@@ -138,7 +163,7 @@ const TeacherStudent = () => {
 
       {isModal && (
         <Modal onClose={setIsModal}>
-          <UserForm />
+          <UserForm fetchUsers={fetchUsers} onClose={setIsModal} />
         </Modal>
       )}
 
@@ -153,10 +178,31 @@ const TeacherStudent = () => {
             </div>
           ) : state.contentType === "edit" ? (
             <div>
-              <UserForm isUpdate={true} data={state.data} />
+              <UserForm
+                isUpdate={true}
+                data={state.data}
+                fetchUsers={fetchUsers}
+                onClose={setIsUserModal}
+              />
             </div>
           ) : (
-            <div>Deactivate/Activate</div>
+            <div>
+              {/*isActive:true ? "Deactivate":"Activate"*/}
+              <p>
+                Do you want to {state.data.isActive ? "deactivate" : "activate"}
+                ?
+              </p>
+              <div className="flex justify-end items-center gap-4 mt-4">
+                <Button
+                  onClick={() =>
+                    handleActiveStatus(state.data._id, state.data.isActive)
+                  }
+                >
+                  {state.data.isActive ? "Deactivate" : "Activate"}
+                </Button>
+                <Button onClick={() => setIsUserModal(false)}>Cancel</Button>
+              </div>
+            </div>
           )}
         </Modal>
       )}
