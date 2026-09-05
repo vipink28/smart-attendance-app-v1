@@ -18,6 +18,7 @@ import StudentDashboard from "./pages/student/StudentDashboard";
 import MyAttendance from "./pages/student/MyAttendance";
 import MarkAttendance from "./pages/student/MarkAttendance";
 import ProtectedRoute from "./auth/ProtectedRoute";
+import Class from "./pages/admin/Class";
 
 const AppRouter = () => {
   return (
@@ -34,6 +35,7 @@ const AppRouter = () => {
         <Route index element={<AdminDashboard />}></Route>
         <Route path="manage-users" element={<TeacherStudent />}></Route>
         <Route path="classes" element={<Classes />}></Route>
+        <Route path="class/:action" element={<Class />}></Route>
         <Route path="logs" element={<Logs />}></Route>
       </Route>
 
