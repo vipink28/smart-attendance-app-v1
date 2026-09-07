@@ -35,7 +35,7 @@ const AppRouter = () => {
         <Route index element={<AdminDashboard />}></Route>
         <Route path="manage-users" element={<TeacherStudent />}></Route>
         <Route path="classes" element={<Classes />}></Route>
-        <Route path="class/:action" element={<Class />}></Route>
+        <Route path="class/:action/:id?" element={<Class />}></Route>
         <Route path="logs" element={<Logs />}></Route>
       </Route>
 
