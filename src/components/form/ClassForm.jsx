@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import CustomInput from "./CustomInput";
 import CustomSelect from "./CustomSelect";
 import Button from "./Button";
@@ -6,7 +6,7 @@ import { showToast } from "../../helper/toast-utility";
 import { api } from "../../api/api";
 import { XCircle } from "lucide-react";
 
-const ClassForm = () => {
+const ClassForm = ({ isUpdate, data }) => {
   const days = [
     { value: "Mon", text: "Mon" },
     { value: "Tue", text: "Tue" },
@@ -16,9 +16,16 @@ const ClassForm = () => {
     { value: "Sat", text: "Sat" },
     { value: "Sun", text: "Sun" },
   ];
+
+  const initClass = {
+    name: "",
+    code: "",
+    location: { lat: "", lng: "" },
+  };
+
   const initSlot = { day: "Mon", startTime: "09:00", endTime: "10:30" };
 
-  const [formData, setFormData] = useState(null);
+  const [formData, setFormData] = useState(initClass);
   // schedule = [{day:"",startTime:"", endTime:""}, {day:"",startTime:"", endTime:""}]
 
   const [schedule, setSchedule] = useState([initSlot]);
@@ -78,33 +85,58 @@ const ClassForm = () => {
     }
   };
 
+  const handleUpdateClass = async (id) => {
+    let requestBody = { ...formData, schedule: schedule };
+    try {
+      await api.put(`/admin/classes/${id}`, requestBody);
+      showToast("success", "Class Updated successfully");
+    } catch (error) {
+      showToast("error", "Something went wrong");
+    }
+  };
+
+  useEffect(() => {
+    if (isUpdate && data) {
+      setFormData(data);
+      setSchedule(data.schedule);
+    }
+  }, [isUpdate, data]);
+
   return (
     <div className="p-6 rounded-md bg-emerald-900 border border-emerald-400 w-full max-w-lg ">
-      <h2 className="font-semibold mb-6">Add Class</h2>
+      <h2 className="font-semibold mb-6">
+        {isUpdate ? "Update" : "Add"} Class
+      </h2>
       <form>
         <CustomInput
           label="Name"
           id="name"
           name="name"
+          value={formData.name}
           onChange={handleInput}
         />
-        <CustomInput
-          label="Code"
-          id="code"
-          name="code"
-          onChange={handleInput}
-        />
+        {!isUpdate && (
+          <CustomInput
+            label="Code"
+            id="code"
+            name="code"
+            value={formData.code}
+            onChange={handleInput}
+          />
+        )}
         <div className="flex gap-4">
           <CustomInput
             label="Latitude"
             id="lat"
             name="lat"
+            value={formData.location.lat}
             onChange={handleInput}
           />
           <CustomInput
             label="Longitude"
             id="lng"
             name="lng"
+            value={formData.location.lng}
             onChange={handleInput}
           />
         </div>
@@ -153,7 +185,18 @@ const ClassForm = () => {
           </Button>
         </div>
         <hr className="mb-4 border-emerald-500" />
-        <Button onClick={handleAddClass}>Add Class</Button>
+        {isUpdate ? (
+          <Button
+            onClick={(e) => {
+              e.preventDefault();
+              handleUpdateClass(data._id);
+            }}
+          >
+            Update Class
+          </Button>
+        ) : (
+          <Button onClick={handleAddClass}>Add Class</Button>
+        )}
       </form>
     </div>
   );
