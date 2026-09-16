@@ -1,7 +1,95 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
+import { api } from "../../api/api";
+import { showToast } from "../../helper/toast-utility";
+import Button from "../../components/form/Button";
+import Modal from "../../components/layout/Modal";
+import ViewSession from "../../components/ViewSession";
 
 const MyClasses = () => {
-  return <div>MyClasses</div>;
+  const [allClasses, setAllClasses] = useState(null);
+  const [sessionDetails, setSessionDetails] = useState(null);
+  const [sessionStatus, setSessionStatus] = useState(null);
+  const [showModal, setShowModal] = useState(false);
+
+  const fetchClasses = async () => {
+    try {
+      const res = await api.get("/teacher/classes");
+      setAllClasses(res.data.classes);
+    } catch (error) {
+      showToast("error", "Error fetching classes");
+    }
+  };
+
+  const handleGenerateQR = async (id) => {
+    try {
+      const res = await api.post(`/attendance/sessions`, { classId: id });
+      setSessionDetails(res.data);
+      setShowModal(true);
+    } catch (error) {
+      showToast("error", "Error generating the QR");
+    }
+  };
+
+  const fetchSessionStatus = async (id) => {
+    try {
+      const res = await api.get(`/attendance/sessions/${id}/status`);
+      setSessionStatus(res.data);
+    } catch (error) {
+      showToast("error", "Error fetching session status");
+    }
+  };
+
+  useEffect(() => {
+    if (sessionDetails || showModal) {
+      fetchSessionStatus(sessionDetails.session._id);
+    }
+  }, [sessionDetails, showModal]);
+
+  useEffect(() => {
+    fetchClasses();
+  }, []);
+
+  return (
+    <div className="py-5">
+      <div className="mt-5 bg-emerald-700 p-5 rounded-md">
+        <h2 className="mb-10 font-bold text-lg">Classes</h2>
+        <div className="grid grid-cols-3 gap-4">
+          {allClasses ? (
+            allClasses.map((item) => (
+              <div key={item._id} className="p-6 rounded-md bg-emerald-900">
+                <h3 className="font-bold text-lg mb-3 flex justify-between">
+                  {item.name}{" "}
+                  <span className="text-sm">
+                    {item.isActive ? "Active" : "Inactive"}
+                  </span>
+                </h3>
+                <h5 className="italic mb-3">[{item.code}]</h5>
+                <p className="mb-4">Total Students: {item.students.length}</p>
+                {/* <div className="flex items-center gap-4 mt-5">
+                  <Link to={`/admin/class/view/${item._id}`}>View</Link>
+                  <Link to={`/admin/class/edit/${item._id}`}>Edit</Link>
+                </div> */}
+                {!sessionStatus?.session?.isLive ? (
+                  <Button onClick={() => handleGenerateQR(item._id)}>
+                    Start Session
+                  </Button>
+                ) : (
+                  <Button onClick={setShowModal(true)}>View Session</Button>
+                )}
+              </div>
+            ))
+          ) : (
+            <p>No classes to show</p>
+          )}
+        </div>
+      </div>
+      {showModal && sessionDetails && (
+        <Modal onClose={() => setShowModal(false)}>
+          <ViewSession sessionDetails={sessionDetails} />
+        </Modal>
+      )}
+    </div>
+  );
 };
 
 export default MyClasses;
