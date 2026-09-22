@@ -8,7 +8,6 @@ import ViewSession from "../../components/ViewSession";
 const MyClasses = () => {
   const [allClasses, setAllClasses] = useState(null);
   const [sessionDetails, setSessionDetails] = useState(null);
-  const [sessionStatus, setSessionStatus] = useState(null);
   const [showModal, setShowModal] = useState(false);
 
   const fetchClasses = async () => {
@@ -29,21 +28,6 @@ const MyClasses = () => {
       showToast("error", "Error generating the QR");
     }
   };
-
-  const fetchSessionStatus = async (id) => {
-    try {
-      const res = await api.get(`/attendance/sessions/${id}/status`);
-      setSessionStatus(res.data);
-    } catch (error) {
-      showToast("error", "Error fetching session status");
-    }
-  };
-
-  useEffect(() => {
-    if (sessionDetails || showModal) {
-      fetchSessionStatus(sessionDetails.session._id);
-    }
-  }, [sessionDetails, showModal]);
 
   useEffect(() => {
     fetchClasses();
@@ -69,13 +53,10 @@ const MyClasses = () => {
                   <Link to={`/admin/class/view/${item._id}`}>View</Link>
                   <Link to={`/admin/class/edit/${item._id}`}>Edit</Link>
                 </div> */}
-                {!sessionStatus?.session?.isLive ? (
-                  <Button onClick={() => handleGenerateQR(item._id)}>
-                    Start Session
-                  </Button>
-                ) : (
-                  <Button onClick={setShowModal(true)}>View Session</Button>
-                )}
+
+                <Button onClick={() => handleGenerateQR(item._id)}>
+                  Start Session
+                </Button>
               </div>
             ))
           ) : (
@@ -85,7 +66,10 @@ const MyClasses = () => {
       </div>
       {showModal && sessionDetails && (
         <Modal onClose={() => setShowModal(false)}>
-          <ViewSession sessionDetails={sessionDetails} />
+          <ViewSession
+            sessionDetails={sessionDetails}
+            onClose={() => setShowModal(false)}
+          />
         </Modal>
       )}
     </div>

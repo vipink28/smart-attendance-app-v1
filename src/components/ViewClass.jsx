@@ -32,7 +32,7 @@ const ViewClass = ({ classData }) => {
       <div className="mt-8 bg-emerald-900 p-5">
         <h2 className="text-2xl font-semibold mb-4">Enrolled Students</h2>
         {students.length > 0 ? (
-          students.map(({ _id, name, studentId, isActive, email }, i) => (
+          students.map(({ _id, name, studentId, email }, i) => (
             <div
               key={_id}
               className="flex items-center bg-emerald-900 rounded-md mb-4"
@@ -41,9 +41,6 @@ const ViewClass = ({ classData }) => {
               <div className="w-2/12 p-3">{name}</div>
               <div className="w-3/12 p-3">{studentId}</div>
               <div className="w-5/12 p-3">{email}</div>
-              <div className="w-1/12 p-3">
-                {isActive ? "Active" : "Inactive"}
-              </div>
             </div>
           ))
         ) : (
