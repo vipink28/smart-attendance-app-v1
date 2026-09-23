@@ -1,7 +1,8 @@
 import axios from "axios";
 
+const backendBaseUrl = import.meta.env.API_URL;
 export const api = axios.create({
-  baseURL: "https://attendly-backend-zeqz.onrender.com/api",
+  baseURL: backendBaseUrl,
   timeout: 5000,
   headers: { "Content-Type": "application/json" },
 });
